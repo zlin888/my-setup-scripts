@@ -1,0 +1,127 @@
+(global-unset-key (kbd "C-x C-b"))
+
+(require 'package)
+(package-initialize)
+
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(use-package quelpa
+  :ensure t)
+(use-package quelpa-use-package
+  :ensure t)
+
+(use-package evil
+  :ensure t
+  :config
+  (evil-mode)
+  (evil-set-undo-system 'undo-redo))
+
+;;;;; COLOR SCHEME
+(use-package afternoon-theme
+  :ensure t)
+(load-theme 'afternoon t)
+
+;;;;; LATEX
+(use-package auctex
+  :ensure t
+  :defer t
+  :hook (LaTeX-mode))
+
+(eval-after-load "tex"
+  '(setcar (cdr (assoc 'output-pdf TeX-view-program-selection)) "Okular"))
+
+(setq-default TeX-master nil)
+
+;;;;; GRAMMAR 
+(use-package langtool 
+  :quelpa (langtool :fetcher github :repo "mhayashi1120/Emacs-langtool") :ensure t)
+(setq langtool-language-tool-jar "/home/zlin/code/LanguageTool-5.8-stable/languagetool-commandline.jar")
+
+;;;;; LSP
+(use-package lsp-mode
+  :ensure t)
+(use-package lsp-ui
+  :ensure t)
+
+;;;;; C-LSP ;;;;;
+(setq package-selected-packages '(lsp-mode yasnippet lsp-treemacs helm-lsp
+    projectile hydra flycheck company avy which-key helm-xref dap-mode))
+
+(when (cl-find-if-not #'package-installed-p package-selected-packages)
+  (package-refresh-contents)
+  (mapc #'package-install package-selected-packages))
+
+;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
+(helm-mode)
+(require 'helm-xref)
+(define-key global-map [remap find-file] #'helm-find-files)
+(define-key global-map [remap execute-extended-command] #'helm-M-x)
+(define-key global-map [remap switch-to-buffer] #'helm-mini)
+
+(which-key-mode)
+(add-hook 'c-mode-hook 'lsp)
+(add-hook 'c++-mode-hook 'lsp)
+
+(setq gc-cons-threshold (* 100 1024 1024)
+      read-process-output-max (* 1024 1024)
+      treemacs-space-between-root-nodes nil
+      company-idle-delay 0.0
+      company-minimum-prefix-length 1
+      lsp-idle-delay 0.1)  ;; clangd is fast
+
+(with-eval-after-load 'lsp-mode
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration) ;
+  (require 'dap-cpptools)
+  (yas-global-mode))
+
+;;;;; RUST
+(use-package rust-mode
+  :ensure t)
+
+;;;;; GO
+(use-package go-mode
+  :ensure t)
+
+;; Go - lsp-mode
+;; Set up before-save hooks to format buffer and add/delete imports.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+;; Start LSP Mode and YASnippet mode
+(add-hook 'go-mode-hook #'lsp-deferred)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(TeX-source-correlate-method 'synctex)
+ '(TeX-source-correlate-mode t)
+ '(TeX-source-correlate-start-server t)
+ '(TeX-view-program-selection
+   '(((output-dvi has-no-display-manager)
+      "dvi2tty")
+     ((output-dvi style-pstricks)
+      "dvips and gv")
+     (output-pdf "Okular")
+     (output-dvi "xdvi")
+     (output-pdf "Evince")
+     (output-html "xdg-open")))
+ '(delete-selection-mode nil)
+ '(mark-even-if-inactive t)
+ '(package-selected-packages
+   '(lsp-ui go-mode lsp-mode yasnippet lsp-treemacs helm-lsp projectile hydra flycheck company avy which-key helm-xref dap-mode))
+ '(scroll-bar-mode 'right)
+ '(transient-mark-mode 1))
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

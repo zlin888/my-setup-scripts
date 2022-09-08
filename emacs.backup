@@ -95,6 +95,11 @@
 ;; Start LSP Mode and YASnippet mode
 (add-hook 'go-mode-hook #'lsp-deferred)
 
+;;;;; AG
+(use-package ag
+  :quelpa (langtool :fetcher github :repo "Wilfred/ag.el") :ensure t)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
